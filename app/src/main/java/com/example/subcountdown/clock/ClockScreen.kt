@@ -14,16 +14,16 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.subcountdown.core.ui.GlassCard
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -51,10 +51,6 @@ fun ClockScreen(viewModel: ClockViewModel) {
         ) {
             Text("World Clock", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(24.dp))
-            
-            RealGlobeCard()
-            
-            Spacer(modifier = Modifier.height(24.dp))
 
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(viewModel.clocks) { clock ->
@@ -64,90 +60,14 @@ fun ClockScreen(viewModel: ClockViewModel) {
         }
 
         if (showAddDialog) {
-            AddCityDialog(
+            TimeZoneSearchDialog(
+                availableTimeZones = viewModel.allAvailableTimeZones,
                 onDismiss = { showAddDialog = false },
-                onAdd = { name -> 
-                    viewModel.addCityByName(name)
+                onSelect = { tzId -> 
+                    viewModel.addClock(tzId)
                     showAddDialog = false
                 }
             )
-        }
-    }
-}
-
-@Composable
-fun RealGlobeCard() {
-    val infiniteTransition = rememberInfiniteTransition()
-    val rotation by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(20000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        )
-    )
-
-    Card(
-        modifier = Modifier.fillMaxWidth().height(220.dp),
-        shape = RoundedCornerShape(32.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF0F0F0F))
-    ) {
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-            // Atmospheric Glow
-            Box(
-                modifier = Modifier
-                    .size(160.dp)
-                    .background(Brush.radialGradient(listOf(Color(0xFF2196F3).copy(alpha = 0.2f), Color.Transparent)), CircleShape)
-            )
-
-            Canvas(modifier = Modifier.size(140.dp)) {
-                // Ocean with deep gradient
-                drawCircle(
-                    brush = Brush.radialGradient(
-                        colors = listOf(Color(0xFF1E88E5), Color(0xFF0D47A1)),
-                        center = center,
-                        radius = size.width / 2
-                    )
-                )
-                
-                // Detailed Landmass simulation
-                withTransform({
-                    rotate(rotation)
-                }) {
-                    // Asia/Europe block
-                    drawPath(
-                        path = androidx.compose.ui.graphics.Path().apply {
-                            addOval(androidx.compose.ui.geometry.Rect(center.x - 50.dp.toPx(), center.y - 30.dp.toPx(), center.x + 20.dp.toPx(), center.y + 10.dp.toPx()))
-                            addOval(androidx.compose.ui.geometry.Rect(center.x - 10.dp.toPx(), center.y - 10.dp.toPx(), center.x + 50.dp.toPx(), center.y + 40.dp.toPx()))
-                        },
-                        color = Color(0xFF4CAF50).copy(alpha = 0.8f)
-                    )
-                }
-
-                // Shading for 3D look (Ambient Occlusion)
-                drawCircle(
-                    brush = Brush.radialGradient(
-                        0.7f to Color.Transparent,
-                        1.0f to Color.Black.copy(alpha = 0.4f),
-                        center = center,
-                        radius = size.width / 2
-                    )
-                )
-
-                // Night shadow
-                drawArc(
-                    color = Color.Black.copy(alpha = 0.7f),
-                    startAngle = 90f,
-                    sweepAngle = 180f,
-                    useCenter = true
-                )
-
-                // Surface Reflection / Atmosphere Rim
-                drawCircle(
-                    color = Color.White.copy(alpha = 0.2f),
-                    style = Stroke(width = 2.dp.toPx())
-                )
-            }
         }
     }
 }
@@ -181,7 +101,7 @@ fun WorldClockItem(clock: WorldClock, onDelete: () -> Unit) {
         ) {
             Column {
                 Text(clock.cityName, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                Text(clock.timezoneId.substringAfter("/").replace("_", " "), color = Color.Gray, fontSize = 13.sp)
+                Text(clock.timezoneId.replace("_", " "), color = Color.Gray, fontSize = 13.sp)
             }
             
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -201,36 +121,99 @@ fun WorldClockItem(clock: WorldClock, onDelete: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddCityDialog(onDismiss: () -> Unit, onAdd: (String, String) -> Unit) {
-    var name by remember { mutableStateOf("") }
-    var tz by remember { mutableStateOf("UTC") }
-    
-    AlertDialog(
+fun TimeZoneSearchDialog(
+    availableTimeZones: List<String>,
+    onDismiss: () -> Unit,
+    onSelect: (String) -> Unit
+) {
+    var searchQuery by remember { mutableStateOf("") }
+    val filteredTimeZones = remember(searchQuery) {
+        availableTimeZones.filter { it.contains(searchQuery, ignoreCase = true) }
+    }
+
+    Dialog(
         onDismissRequest = onDismiss,
-        title = { Text("Add City") },
-        text = {
-            Column {
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = Color.Black
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+                    }
+                    Text(
+                        "Choose City/Country",
+                        color = Color.White,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 TextField(
-                    value = name, 
-                    onValueChange = { name = it }, 
-                    label = { Text("City (e.g. Dubai)") },
-                    colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent)
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    placeholder = { Text("Search city or country...", color = Color.Gray) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp),
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.White.copy(alpha = 0.1f),
+                        unfocusedContainerColor = Color.White.copy(alpha = 0.1f),
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White
+                    )
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                TextField(
-                    value = tz, 
-                    onValueChange = { tz = it }, 
-                    label = { Text("Timezone (e.g. Asia/Dubai)") },
-                    colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent)
-                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(filteredTimeZones) { tzId ->
+                        val parts = tzId.split("/")
+                        val region = parts.first()
+                        val city = parts.last().replace("_", " ")
+
+                        Card(
+                            onClick = { onSelect(tzId) },
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A1A)),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text(city, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Medium)
+                                    Text(region, color = Color.Gray, fontSize = 14.sp)
+                                }
+                                Icon(Icons.Default.Add, contentDescription = null, tint = Color(0xFF3F51B5))
+                            }
+                        }
+                    }
+                }
             }
-        },
-        confirmButton = {
-            Button(onClick = { if (name.isNotBlank()) onAdd(name, tz) }) { Text("Add") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
         }
-    )
+    }
 }

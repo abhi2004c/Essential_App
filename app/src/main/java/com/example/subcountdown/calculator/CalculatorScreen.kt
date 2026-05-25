@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,138 +23,174 @@ import androidx.compose.ui.unit.sp
 fun CalculatorScreen() {
     var expression by remember { mutableStateOf("") }
     var result by remember { mutableStateOf("0") }
+    val scrollState = rememberScrollState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF000000))
-            .padding(24.dp)
+            .padding(horizontal = 16.dp)
+            .verticalScroll(scrollState), // Allow scrolling if height is tight on tablets
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Display Area
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f),
+                .widthIn(max = 600.dp)
+                .heightIn(min = 150.dp, max = 250.dp)
+                .padding(vertical = 24.dp),
             verticalArrangement = Arrangement.Bottom,
             horizontalAlignment = Alignment.End
         ) {
             Text(
-                text = expression,
-                fontSize = 32.sp,
+                text = expression.ifEmpty { " " },
+                fontSize = 24.sp,
                 color = Color.Gray,
                 textAlign = TextAlign.End,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.fillMaxWidth(),
+                maxLines = 2
             )
             Text(
                 text = result,
-                fontSize = 64.sp,
+                fontSize = 52.sp,
                 color = Color.White,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Light,
                 textAlign = TextAlign.End,
-                lineHeight = 70.sp
+                modifier = Modifier.fillMaxWidth(),
+                lineHeight = 58.sp
             )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
-
-        val sciButtons = listOf(
-            "sin", "cos", "tan", "log",
-            "ln", "(", ")", "^",
-            "sqrt", "pi", "e", "C"
-        )
-
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        // Keypad Container
+        Column(
+            modifier = Modifier
+                .widthIn(max = 600.dp)
+                .fillMaxWidth()
+                .padding(bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(4),
-                modifier = Modifier.height(140.dp).weight(1f),
+            // Scientific Functions Grid
+            val sciButtons = listOf(
+                "sin", "cos", "tan", "log",
+                "ln", "(", ")", "^",
+                "sqrt", "π", "e", "C"
+            )
+            
+            // Using a Row with wrapping or small grid for scientific
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                maxItemsInEachRow = 4
             ) {
-                items(sciButtons) { btn ->
-                    ScientificButton(btn) {
+                sciButtons.forEach { btn ->
+                    SciButton(btn, modifier = Modifier.weight(1f)) {
                         when (btn) {
                             "C" -> { expression = ""; result = "0" }
-                            "pi" -> expression += "π"
-                            "e" -> expression += "e"
-                            "sqrt" -> expression += "√("
-                            else -> expression += "$btn("
-                        }
-                    }
-                }
-            }
-        }
-
-        val keypad = listOf(
-            listOf("7", "8", "9", "/"),
-            listOf("4", "5", "6", "*"),
-            listOf("1", "2", "3", "-"),
-            listOf("0", ".", "DEL", "+"),
-            listOf("=")
-        )
-
-        keypad.forEach { row ->
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                row.forEach { btn ->
-                    val isEquals = btn == "="
-                    val isOperator = btn in listOf("/", "*", "-", "+", "DEL")
-
-                    MainButton(
-                        text = btn,
-                        modifier = if (isEquals) Modifier.weight(4f) else Modifier.weight(1f),
-                        isPrimary = isEquals,
-                        isOperator = isOperator
-                    ) {
-                        when (btn) {
-                            "=" -> result = evaluateExpression(expression)
-                            "DEL" -> if (expression.isNotEmpty()) expression = expression.dropLast(1)
+                            "sqrt" -> expression += "sqrt("
                             else -> expression += btn
                         }
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Main Keypad
+            val keypad = listOf(
+                listOf("7", "8", "9", "÷"),
+                listOf("4", "5", "6", "×"),
+                listOf("1", "2", "3", "−"),
+                listOf("0", ".", "DEL", "+"),
+                listOf("=")
+            )
+
+            keypad.forEach { row ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    row.forEach { btn ->
+                        val isOperator = btn in listOf("÷", "×", "−", "+", "=")
+                        val isDEL = btn == "DEL"
+                        
+                        CalcButton(
+                            text = btn,
+                            modifier = Modifier.weight(1f),
+                            isPrimary = btn == "=",
+                            isOperator = isOperator,
+                            isDEL = isDEL
+                        ) {
+                            when (btn) {
+                                "=" -> if (expression.isNotEmpty()) result = evaluateExpression(expression)
+                                "DEL" -> if (expression.isNotEmpty()) expression = expression.dropLast(1)
+                                else -> {
+                                    val char = when(btn) {
+                                        "÷" -> "/"
+                                        "×" -> "*"
+                                        "−" -> "-"
+                                        else -> btn
+                                    }
+                                    expression += char
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ScientificButton(text: String, onClick: () -> Unit) {
+fun SciButton(text: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
-        shape = RoundedCornerShape(16.dp),
-        color = Color(0xFF1A1A1A),
-        modifier = Modifier.height(36.dp)
+        shape = RoundedCornerShape(12.dp),
+        color = Color.White.copy(alpha = 0.08f),
+        modifier = modifier.height(44.dp)
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Text(text = text, color = Color(0xFF3F51B5), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            Text(text = text, color = Color(0xFF3F51B5), fontSize = 14.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
 
 @Composable
-fun MainButton(text: String, modifier: Modifier, isPrimary: Boolean, isOperator: Boolean, onClick: () -> Unit) {
+fun CalcButton(
+    text: String, 
+    modifier: Modifier, 
+    isPrimary: Boolean, 
+    isOperator: Boolean, 
+    isDEL: Boolean, 
+    onClick: () -> Unit
+) {
     val containerColor = when {
         isPrimary -> Color(0xFF3F51B5)
+        isDEL -> Color(0xFF2C1A1A)
         isOperator -> Color(0xFF1A1A1A)
-        else -> Color(0xFF121212)
+        else -> Color.White.copy(alpha = 0.08f)
     }
+    
     val textColor = when {
         isPrimary -> Color.White
+        isDEL -> Color(0xFFE57373)
         isOperator -> Color(0xFF3F51B5)
         else -> Color.White
     }
+
     Surface(
         onClick = onClick,
         shape = CircleShape,
         color = containerColor,
-        modifier = modifier.then(if (text != "=") Modifier.aspectRatio(1f) else Modifier.height(64.dp))
+        modifier = modifier.then(
+            if (text == "=") Modifier.height(64.dp) else Modifier.aspectRatio(1f)
+        ).widthIn(max = 100.dp) // Prevent buttons from becoming too wide on tablets
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Text(text = text, color = textColor, fontSize = 24.sp, fontWeight = FontWeight.Medium)
+            Text(text = text, color = textColor, fontSize = 24.sp, fontWeight = FontWeight.Normal)
         }
     }
 }
@@ -161,15 +199,11 @@ fun evaluateExpression(expr: String): String {
     return try {
         val sanitized = expr
             .replace("π", Math.PI.toString())
-            .replace("√(", "sqrt(")
-            .replace("×", "*")
-            .replace("÷", "/")
+            .replace("e", Math.E.toString())
+            .replace("sqrt", "sqrt")
         val value = ExprParser(sanitized).parse()
-        when {
-            value.isNaN() || value.isInfinite() -> "Error"
-            value == value.toLong().toDouble() -> value.toLong().toString()
-            else -> "%.10g".format(value).trimEnd('0').trimEnd('.')
-        }
+        if (value == value.toLong().toDouble()) value.toLong().toString()
+        else "%.8g".format(value).trimEnd('0').trimEnd('.')
     } catch (e: Exception) {
         "Error"
     }
@@ -177,13 +211,11 @@ fun evaluateExpression(expr: String): String {
 
 private class ExprParser(private val input: String) {
     private var pos = 0
-
     fun parse(): Double {
         val result = parseExpr()
-        if (pos < input.length) throw IllegalArgumentException("Unexpected char: ${input[pos]}")
+        if (pos < input.length) throw IllegalArgumentException()
         return result
     }
-
     private fun parseExpr(): Double {
         var result = parseTerm()
         while (pos < input.length) {
@@ -195,7 +227,6 @@ private class ExprParser(private val input: String) {
         }
         return result
     }
-
     private fun parseTerm(): Double {
         var result = parsePower()
         while (pos < input.length) {
@@ -207,19 +238,16 @@ private class ExprParser(private val input: String) {
         }
         return result
     }
-
     private fun parsePower(): Double {
         val base = parseUnary()
         return if (pos < input.length && input[pos] == '^') {
             pos++; Math.pow(base, parseUnary())
         } else base
     }
-
     private fun parseUnary(): Double {
         if (pos < input.length && input[pos] == '-') { pos++; return -parsePrimary() }
         return parsePrimary()
     }
-
     private fun parsePrimary(): Double {
         if (pos < input.length && input[pos] == '(') {
             pos++
@@ -241,12 +269,11 @@ private class ExprParser(private val input: String) {
                     "tan"  -> Math.tan(Math.toRadians(arg))
                     "log"  -> Math.log10(arg)
                     "ln"   -> Math.log(arg)
-                    else   -> throw IllegalArgumentException("Unknown: $fn")
+                    else   -> 0.0
                 }
             }
         }
         val start = pos
-        if (pos < input.length && input[pos] == '-') pos++
         while (pos < input.length && (input[pos].isDigit() || input[pos] == '.')) pos++
         return input.substring(start, pos).toDouble()
     }

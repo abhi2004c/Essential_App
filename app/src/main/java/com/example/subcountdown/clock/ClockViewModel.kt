@@ -13,16 +13,13 @@ class ClockViewModel : ViewModel() {
         WorldClock("Tokyo", "Asia/Tokyo")
     )
 
-    fun addCityByName(name: String) {
-        val availableIds = TimeZone.getAvailableIDs()
-        val cleanName = name.trim().replace(" ", "_")
-        
-        // Find best match: e.g. if user types "Paris", find "Europe/Paris" or "Paris"
-        val matchedTz = availableIds.find { it.split("/").last().equals(cleanName, ignoreCase = true) } 
-                      ?: availableIds.find { it.contains(cleanName, ignoreCase = true) }
-                      ?: "UTC"
+    val allAvailableTimeZones = TimeZone.getAvailableIDs()
+        .filter { it.contains("/") } // Focus on Region/City format
+        .sortedBy { it.split("/").last() }
 
-        clocks.add(WorldClock(name.trim(), matchedTz))
+    fun addClock(tzId: String) {
+        val cityName = tzId.split("/").last().replace("_", " ")
+        clocks.add(WorldClock(cityName, tzId))
     }
     
     fun removeCity(clock: WorldClock) {

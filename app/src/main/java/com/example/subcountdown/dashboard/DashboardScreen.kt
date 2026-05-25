@@ -171,24 +171,27 @@ fun DashboardScreen(
                 items(subVM.subscriptions) { sub ->
                     GlassCard(
                         modifier = Modifier
-                            .width(140.dp)
-                            .height(100.dp)
+                            .width(150.dp)
+                            .height(110.dp)
                     ) {
                         Column(
                             modifier = Modifier.padding(12.dp),
-                            verticalArrangement = Arrangement.Center
+                            verticalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(text = sub.name, color = Color.White, fontWeight = FontWeight.Bold)
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                                Text(sub.name, color = Color.White, fontWeight = FontWeight.Bold, maxLines = 1)
+                                Box(modifier = Modifier.size(8.dp).background(sub.color, CircleShape))
+                            }
+                            Text(
+                                text = "$${sub.price}",
+                                color = Color.White,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.ExtraBold
+                            )
                             Text(
                                 text = "${sub.daysLeft} days left",
                                 color = Color.Gray,
-                                fontSize = 12.sp
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .padding(top = 8.dp)
-                                    .size(20.dp, 4.dp)
-                                    .background(sub.color, CircleShape)
+                                fontSize = 11.sp
                             )
                         }
                     }
