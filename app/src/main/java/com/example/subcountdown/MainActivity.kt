@@ -27,10 +27,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
 import com.example.subcountdown.calculator.CalculatorScreen
+import com.example.subcountdown.checklist.ChecklistScreen
 import com.example.subcountdown.clock.ClockScreen
 import com.example.subcountdown.clock.ClockViewModel
+import com.example.subcountdown.converter.CurrencyScreen
 import com.example.subcountdown.core.ui.FeaturePlaceholder
 import com.example.subcountdown.dashboard.DashboardScreen
+import com.example.subcountdown.notes.NotesScreen
+import com.example.subcountdown.stopwatch.StopwatchScreen
 import com.example.subcountdown.subscriptions.SubscriptionScreen
 import com.example.subcountdown.subscriptions.SubViewModel
 import com.example.subcountdown.timer.TimerScreen
@@ -131,16 +135,16 @@ fun MainAppHost() {
                 TimerScreen(timerViewModel)
             }
             composable("stopwatch") {
-                FeaturePlaceholder("Stopwatch Coming Soon")
+                StopwatchScreen()
             }
             composable("converter") {
-                FeaturePlaceholder("Unit Converter Coming Soon")
+                CurrencyScreen()
             }
             composable("checklist") {
-                FeaturePlaceholder("Checklist Coming Soon")
+                ChecklistScreen()
             }
             composable("notes") {
-                FeaturePlaceholder("Notes Coming Soon")
+                NotesScreen()
             }
             composable("tools") {
                 FeaturePlaceholder("All Utilities Hub")

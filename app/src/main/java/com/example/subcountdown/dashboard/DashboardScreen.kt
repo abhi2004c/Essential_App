@@ -108,7 +108,7 @@ fun DashboardScreen(
                             color = Color.White,
                             fontSize = 18.sp
                         )
-                        Text(
+                         Text(
                             text = "${weatherVM.weatherData?.main?.temp?.toInt() ?: "--"}°C",
                             color = Color.White,
                             fontSize = 48.sp,
