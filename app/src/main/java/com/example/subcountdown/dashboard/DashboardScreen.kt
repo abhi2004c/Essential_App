@@ -15,9 +15,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -61,7 +62,7 @@ fun DashboardScreen(
             }
         }
 
-        // Active Timer Widget (Shows only if running)
+        // Active Timer Widget
         if (timerVM.isRunning) {
             item {
                 Card(
@@ -201,7 +202,7 @@ fun DashboardScreen(
 
         item {
             Text(
-                text = "Daily Tools",
+                text = "Utility Toolkit",
                 color = Color.White,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
@@ -212,20 +213,42 @@ fun DashboardScreen(
             val tools = listOf(
                 ToolItem("Clock", Icons.Default.Schedule, Color(0xFF673AB7), "clock"),
                 ToolItem("Timer", Icons.Default.Timer, Color(0xFFE91E63), "timer"),
+                ToolItem("Calculator", Icons.Default.Calculate, Color(0xFF4CAF50), "calculator"),
+                ToolItem("Stopwatch", Icons.Default.HourglassEmpty, Color(0xFF9C27B0), "stopwatch"),
+                ToolItem("Converter", Icons.Default.SwapHoriz, Color(0xFF2196F3), "converter"),
                 ToolItem("Notes", Icons.AutoMirrored.Filled.Notes, Color(0xFFFF9800), "notes"),
-                ToolItem("Calculator", Icons.Default.Calculate, Color(0xFF4CAF50), "calculator")
+                ToolItem("Checklist", Icons.Default.Checklist, Color(0xFF009688), "checklist")
             )
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.height(240.dp)
+                modifier = Modifier.height(420.dp) // Adjusted height for 7 items
             ) {
                 items(tools) { tool -> 
                     ToolCard(tool) {
                         navController.navigate(tool.route)
                     }
                 }
+            }
+        }
+        
+        item { Spacer(modifier = Modifier.height(20.dp)) }
+    }
+}
+
+@Composable
+fun StatusCard(modifier: Modifier, label: String, value: String, icon: ImageVector, color: Color) {
+    GlassCard(modifier = modifier.height(80.dp)) {
+        Row(
+            modifier = Modifier.fillMaxSize().padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(24.dp))
+            Spacer(Modifier.width(12.dp))
+            Column {
+                Text(label, color = Color.Gray, fontSize = 12.sp)
+                Text(value, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
         }
     }

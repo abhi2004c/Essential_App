@@ -130,11 +130,20 @@ fun MainAppHost() {
             composable("timer") {
                 TimerScreen(timerViewModel)
             }
+            composable("stopwatch") {
+                FeaturePlaceholder("Stopwatch Coming Soon")
+            }
+            composable("converter") {
+                FeaturePlaceholder("Unit Converter Coming Soon")
+            }
+            composable("checklist") {
+                FeaturePlaceholder("Checklist Coming Soon")
+            }
             composable("notes") {
                 FeaturePlaceholder("Notes Coming Soon")
             }
             composable("tools") {
-                FeaturePlaceholder("More Utilities Coming Soon")
+                FeaturePlaceholder("All Utilities Hub")
             }
         }
     }
