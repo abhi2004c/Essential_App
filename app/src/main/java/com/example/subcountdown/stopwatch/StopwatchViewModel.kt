@@ -35,7 +35,8 @@ class StopwatchViewModel : ViewModel() {
     }
 
     fun reset() {
-        pause()
+        isRunning = false
+        stopwatchJob?.cancel()
         timeMillis = 0L
         laps.clear()
     }

@@ -50,14 +50,18 @@ class TimerViewModel(application: Application) : AndroidViewModel(application) {
 
     fun resetTimer() {
         stopTimer()
-        timeSeconds = prefs.getLong("last_set_val", 60L)
+        timeSeconds = 0L
+        saveLastTime()
+        prefs.edit().putLong("last_set_val", 0L).apply()
     }
 
     fun addMinutes(mins: Int) {
-        val added = timeSeconds + mins.toLong() * 60L
-        timeSeconds = added.coerceAtMost(Long.MAX_VALUE)
-        prefs.edit().putLong("last_set_val", timeSeconds).apply()
-        saveLastTime()
+        if (!isRunning) {
+            val added = timeSeconds + mins.toLong() * 60L
+            timeSeconds = added.coerceAtMost(359999L) // Max ~100 hours
+            prefs.edit().putLong("last_set_val", timeSeconds).apply()
+            saveLastTime()
+        }
     }
 
     private fun saveLastTime() {
