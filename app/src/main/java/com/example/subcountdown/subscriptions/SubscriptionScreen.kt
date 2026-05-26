@@ -21,8 +21,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import com.example.subcountdown.core.ui.GlassCard
+import com.example.subcountdown.core.ui.PremiumTextField
 
 @Composable
 fun SubscriptionScreen(viewModel: SubViewModel) {
@@ -218,160 +220,178 @@ fun AddSubscriptionDialog(onDismiss: () -> Unit, onAdd: (Subscription) -> Unit) 
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("New Subscription") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                // App Selection
-                ExposedDropdownMenuBox(
-                    expanded = appExpanded,
-                    onExpandedChange = { appExpanded = it }
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+        modifier = Modifier.padding(16.dp),
+        content = {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+                shape = RoundedCornerShape(32.dp),
+                color = Color(0xFF1A1A1A),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    TextField(
-                        value = selectedApp?.name ?: customName,
-                        onValueChange = { 
-                            customName = it
-                            selectedApp = null
-                            selectedPlan = null
-                        },
-                        label = { Text("App Name") },
-                        modifier = Modifier.fillMaxWidth().menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryEditable, enabled = true),
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = appExpanded) },
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent
-                        )
+                    Text(
+                        "Add Subscription",
+                        color = Color.White,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold
                     )
-                    ExposedDropdownMenu(
-                        expanded = appExpanded,
-                        onDismissRequest = { appExpanded = false }
-                    ) {
-                        popularApps.forEach { app ->
-                            DropdownMenuItem(
-                                text = { Text(app.name) },
-                                onClick = {
-                                    selectedApp = app
-                                    customName = app.name
-                                    selectedPlan = null
-                                    appExpanded = false
-                                }
-                            )
-                        }
-                    }
-                }
 
-                if (selectedApp != null) {
-                    // Plan Selection for Predefined App
+                    // App Selection
                     ExposedDropdownMenuBox(
-                        expanded = planExpanded,
-                        onExpandedChange = { planExpanded = it }
+                        expanded = appExpanded,
+                        onExpandedChange = { appExpanded = it }
                     ) {
-                        TextField(
-                            value = selectedPlan?.name ?: "",
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Select Plan") },
-                            modifier = Modifier.fillMaxWidth().menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = true),
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = planExpanded) },
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent
-                            )
+                        PremiumTextField(
+                            value = selectedApp?.name ?: customName,
+                            onValueChange = { 
+                                customName = it
+                                selectedApp = null
+                                selectedPlan = null
+                            },
+                            label = "App Name",
+                            modifier = Modifier.menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryEditable, enabled = true),
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = appExpanded) }
                         )
                         ExposedDropdownMenu(
-                            expanded = planExpanded,
-                            onDismissRequest = { planExpanded = false }
+                            expanded = appExpanded,
+                            onDismissRequest = { appExpanded = false },
+                            modifier = Modifier.background(Color(0xFF1A1A1A))
                         ) {
-                            selectedApp!!.plans.forEach { plan ->
+                            popularApps.forEach { app ->
                                 DropdownMenuItem(
-                                    text = { Text("${plan.name} - $${plan.price}") },
+                                    text = { Text(app.name, color = Color.White) },
                                     onClick = {
-                                        selectedPlan = plan
-                                        planExpanded = false
+                                        selectedApp = app
+                                        customName = app.name
+                                        selectedPlan = null
+                                        appExpanded = false
                                     }
                                 )
                             }
                         }
                     }
-                } else {
-                    // Custom Plan Entry
-                    TextField(
-                        value = customPkg, 
-                        onValueChange = { customPkg = it }, 
-                        label = { Text("Package Name") },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent
-                        )
-                    )
-                }
 
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TextField(
-                        value = if (selectedPlan != null) selectedPlan!!.price.toString() else customPrice,
-                        onValueChange = { if (selectedPlan == null) customPrice = it },
-                        readOnly = selectedPlan != null,
-                        label = { Text("Price") },
-                        modifier = Modifier.weight(1f),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent
-                        )
-                    )
-                    TextField(
-                        value = customDays, 
-                        onValueChange = { customDays = it }, 
-                        label = { Text("Days Left") },
-                        modifier = Modifier.weight(1f),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent
-                        )
-                    )
-                }
-                
-                if (selectedPlan == null) {
-                    Text("Billing Cycle", fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(
-                            selected = customCycle == "Monthly",
-                            onClick = { customCycle = "Monthly" },
-                            label = { Text("Monthly") }
-                        )
-                        FilterChip(
-                            selected = customCycle == "Yearly",
-                            onClick = { customCycle = "Yearly" },
-                            label = { Text("Yearly") }
+                    if (selectedApp != null) {
+                        ExposedDropdownMenuBox(
+                            expanded = planExpanded,
+                            onExpandedChange = { planExpanded = it }
+                        ) {
+                            PremiumTextField(
+                                value = selectedPlan?.name ?: "",
+                                onValueChange = {},
+                                label = "Select Plan",
+                                modifier = Modifier.menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = true),
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = planExpanded) }
+                            )
+                            ExposedDropdownMenu(
+                                expanded = planExpanded,
+                                onDismissRequest = { planExpanded = false },
+                                modifier = Modifier.background(Color(0xFF1A1A1A))
+                            ) {
+                                selectedApp!!.plans.forEach { plan ->
+                                    DropdownMenuItem(
+                                        text = { Text("${plan.name} - $${plan.price}", color = Color.White) },
+                                        onClick = {
+                                            selectedPlan = plan
+                                            planExpanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        PremiumTextField(
+                            value = customPkg, 
+                            onValueChange = { customPkg = it }, 
+                            label = "Package Name"
                         )
                     }
-                } else {
-                    Text("Billing Cycle: ${selectedPlan!!.cycle}", fontSize = 14.sp, color = Color.Gray)
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        PremiumTextField(
+                            value = if (selectedPlan != null) selectedPlan!!.price.toString() else customPrice,
+                            onValueChange = { if (selectedPlan == null) customPrice = it },
+                            label = "Price",
+                            modifier = Modifier.weight(1f),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+                        )
+                        PremiumTextField(
+                            value = customDays, 
+                            onValueChange = { customDays = it }, 
+                            label = "Days Left",
+                            modifier = Modifier.weight(1f),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                        )
+                    }
+                    
+                    if (selectedPlan == null) {
+                        Text("Billing Cycle", color = Color.Gray, fontSize = 14.sp)
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            FilterChip(
+                                selected = customCycle == "Monthly",
+                                onClick = { customCycle = "Monthly" },
+                                label = { Text("Monthly") },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = Color(0xFF3F51B5),
+                                    selectedLabelColor = Color.White
+                                )
+                            )
+                            FilterChip(
+                                selected = customCycle == "Yearly",
+                                onClick = { customCycle = "Yearly" },
+                                label = { Text("Yearly") },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = Color(0xFF3F51B5),
+                                    selectedLabelColor = Color.White
+                                )
+                            )
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        TextButton(
+                            onClick = onDismiss,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text("Cancel", color = Color.Gray)
+                        }
+                        Button(
+                            onClick = {
+                                val finalName = selectedApp?.name ?: customName
+                                val finalPrice = selectedPlan?.price ?: customPrice.toDoubleOrNull() ?: 0.0
+                                val finalPkg = selectedPlan?.name ?: customPkg
+                                val finalCycle = selectedPlan?.cycle ?: customCycle
+
+                                if (finalName.isNotBlank()) {
+                                    onAdd(Subscription(
+                                        name = finalName,
+                                        packageName = finalPkg,
+                                        price = finalPrice,
+                                        billingCycle = finalCycle,
+                                        daysLeft = customDays.toIntOrNull() ?: 30,
+                                        color = selectedApp?.color ?: Color(0xFF3F51B5)
+                                    ))
+                                }
+                            },
+                            modifier = Modifier.weight(1f).height(48.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3F51B5))
+                        ) {
+                            Text("Add", fontWeight = FontWeight.Bold)
+                        }
+                    }
                 }
             }
-        },
-        confirmButton = {
-            Button(onClick = {
-                val finalName = selectedApp?.name ?: customName
-                val finalPrice = selectedPlan?.price ?: customPrice.toDoubleOrNull() ?: 0.0
-                val finalPkg = selectedPlan?.name ?: customPkg
-                val finalCycle = selectedPlan?.cycle ?: customCycle
-
-                if (finalName.isNotBlank()) {
-                    onAdd(Subscription(
-                        name = finalName,
-                        packageName = finalPkg,
-                        price = finalPrice,
-                        billingCycle = finalCycle,
-                        daysLeft = customDays.toIntOrNull() ?: 30,
-                        color = selectedApp?.color ?: Color(0xFF3F51B5)
-                    ))
-                }
-            }) { Text("Add") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
         }
     )
 }

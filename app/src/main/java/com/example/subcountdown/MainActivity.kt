@@ -30,7 +30,7 @@ import com.example.subcountdown.calculator.CalculatorScreen
 import com.example.subcountdown.checklist.ChecklistScreen
 import com.example.subcountdown.clock.ClockScreen
 import com.example.subcountdown.clock.ClockViewModel
-import com.example.subcountdown.converter.CurrencyScreen
+import com.example.subcountdown.converter.ConverterScreen
 import com.example.subcountdown.core.ui.FeaturePlaceholder
 import com.example.subcountdown.dashboard.DashboardScreen
 import com.example.subcountdown.notes.NotesScreen
@@ -71,8 +71,8 @@ fun MainAppHost() {
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
-        val isGranted = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true || 
-                       permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
+        val isGranted = (permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true) || 
+                       (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true)
         if (isGranted) {
             fusedLocationClient.getCurrentLocation(Priority.PRIORITY_BALANCED_POWER_ACCURACY, null)
                 .addOnSuccessListener { loc ->
@@ -108,13 +108,14 @@ fun MainAppHost() {
             navController = navController,
             startDestination = "dashboard",
             modifier = Modifier
-                .padding(innerPadding)
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
                         listOf(Color(0xFF000000), Color(0xFF0A0A0A))
                     )
                 )
+                .padding(bottom = innerPadding.calculateBottomPadding()) // Only pad the bottom by the navbar height
+                .padding(top = innerPadding.calculateTopPadding()) // Keep the top bar padding
         ) {
             composable("dashboard") {
                 DashboardScreen(navController, weatherViewModel, subViewModel, timerViewModel)
@@ -138,7 +139,7 @@ fun MainAppHost() {
                 StopwatchScreen()
             }
             composable("converter") {
-                CurrencyScreen()
+                ConverterScreen()
             }
             composable("checklist") {
                 ChecklistScreen()
@@ -159,7 +160,7 @@ fun BottomNavigationBar(navController: NavHostController) {
         NavigationItem("Home", "dashboard", Icons.Default.Dashboard),
         NavigationItem("Weather", "weather", Icons.Default.Cloud),
         NavigationItem("Subs", "subscriptions", Icons.AutoMirrored.Filled.ReceiptLong),
-        NavigationItem("Tools", "tools", Icons.Default.GridView)
+        NavigationItem("Tools", "tools", Icons.Default.GridView),
     )
     NavigationBar(
         containerColor = Color.Black,

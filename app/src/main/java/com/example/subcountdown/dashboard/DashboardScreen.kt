@@ -5,9 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,13 +34,13 @@ fun DashboardScreen(
     navController: NavHostController,
     weatherVM: WeatherViewModel,
     subVM: SubViewModel,
-    timerVM: TimerViewModel
+    timerVM: TimerViewModel,
 ) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+        verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         item {
             Column {
@@ -209,46 +206,31 @@ fun DashboardScreen(
             )
         }
 
-        item {
-            val tools = listOf(
-                ToolItem("Clock", Icons.Default.Schedule, Color(0xFF673AB7), "clock"),
-                ToolItem("Timer", Icons.Default.Timer, Color(0xFFE91E63), "timer"),
-                ToolItem("Calculator", Icons.Default.Calculate, Color(0xFF4CAF50), "calculator"),
-                ToolItem("Stopwatch", Icons.Default.HourglassEmpty, Color(0xFF9C27B0), "stopwatch"),
-                ToolItem("Converter", Icons.Default.SwapHoriz, Color(0xFF2196F3), "converter"),
-                ToolItem("Notes", Icons.AutoMirrored.Filled.Notes, Color(0xFFFF9800), "notes"),
-                ToolItem("Checklist", Icons.Default.Checklist, Color(0xFF009688), "checklist")
-            )
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.height(420.dp) // Adjusted height for 7 items
+        val tools = listOf(
+            ToolItem("Clock", Icons.Default.Schedule, Color(0xFF673AB7), "clock"),
+            ToolItem("Timer", Icons.Default.Timer, Color(0xFFE91E63), "timer"),
+            ToolItem("Calculator", Icons.Default.Calculate, Color(0xFF4CAF50), "calculator"),
+            ToolItem("Stopwatch", Icons.Default.HourglassEmpty, Color(0xFF9C27B0), "stopwatch"),
+            ToolItem("Converter", Icons.Default.SwapHoriz, Color(0xFF2196F3), "converter"),
+            ToolItem("Notes", Icons.AutoMirrored.Filled.Notes, Color(0xFFFF9800), "notes"),
+            ToolItem("Checklist", Icons.Default.Checklist, Color(0xFF009688), "checklist")
+        )
+
+        items(tools.chunked(2)) { rowTools ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(tools) { tool -> 
-                    ToolCard(tool) {
-                        navController.navigate(tool.route)
+                rowTools.forEach { tool ->
+                    Box(modifier = Modifier.weight(1f).padding(bottom = 12.dp)) {
+                        ToolCard(tool) {
+                            navController.navigate(tool.route)
+                        }
                     }
                 }
-            }
-        }
-        
-        item { Spacer(modifier = Modifier.height(20.dp)) }
-    }
-}
-
-@Composable
-fun StatusCard(modifier: Modifier, label: String, value: String, icon: ImageVector, color: Color) {
-    GlassCard(modifier = modifier.height(80.dp)) {
-        Row(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(24.dp))
-            Spacer(Modifier.width(12.dp))
-            Column {
-                Text(label, color = Color.Gray, fontSize = 12.sp)
-                Text(value, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                if (rowTools.size == 1) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
             }
         }
     }

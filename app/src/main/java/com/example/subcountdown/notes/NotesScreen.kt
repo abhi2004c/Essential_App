@@ -15,8 +15,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.subcountdown.core.ui.GlassCard
+import com.example.subcountdown.core.ui.PremiumTextField
 
 @Composable
 fun NotesScreen(viewModel: NotesViewModel = viewModel()) {
@@ -99,6 +101,7 @@ fun NoteCard(note: Note, onDelete: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddNoteDialog(onDismiss: () -> Unit, onAdd: (String, String) -> Unit) {
     var title by remember { mutableStateOf("") }
@@ -106,38 +109,60 @@ fun AddNoteDialog(onDismiss: () -> Unit, onAdd: (String, String) -> Unit) {
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("New Note") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    label = { Text("Title") },
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+        modifier = Modifier.padding(16.dp),
+        content = {
+            Surface(
+                modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+                shape = RoundedCornerShape(32.dp),
+                color = Color(0xFF1A1A1A),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        "New Note",
+                        color = Color.White,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold
                     )
-                )
-                TextField(
-                    value = content,
-                    onValueChange = { content = it },
-                    label = { Text("Content") },
-                    modifier = Modifier.height(150.dp),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent
+
+                    PremiumTextField(
+                        value = title,
+                        onValueChange = { title = it },
+                        label = "Title"
                     )
-                )
-            }
-        },
-        confirmButton = {
-            Button(onClick = { if (title.isNotBlank() || content.isNotBlank()) onAdd(title, content) }) {
-                Text("Add")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
+
+                    PremiumTextField(
+                        value = content,
+                        onValueChange = { content = it },
+                        label = "Content",
+                        singleLine = false,
+                        modifier = Modifier.heightIn(min = 120.dp, max = 200.dp)
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        TextButton(
+                            onClick = onDismiss,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Cancel", color = Color.Gray)
+                        }
+                        Button(
+                            onClick = { if (title.isNotBlank() || content.isNotBlank()) onAdd(title, content) },
+                            modifier = Modifier.weight(1f).height(48.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3F51B5))
+                        ) {
+                            Text("Save", fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
             }
         }
     )

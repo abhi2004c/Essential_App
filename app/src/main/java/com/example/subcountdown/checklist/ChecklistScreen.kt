@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.subcountdown.core.ui.GlassCard
+import com.example.subcountdown.core.ui.PremiumTextField
 
 @Composable
 fun ChecklistScreen(viewModel: ChecklistViewModel = viewModel()) {
@@ -33,7 +34,7 @@ fun ChecklistScreen(viewModel: ChecklistViewModel = viewModel()) {
         Text(
             "Checklist",
             color = Color.White,
-            fontSize = 24.sp,
+            fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(vertical = 16.dp)
         )
@@ -41,25 +42,20 @@ fun ChecklistScreen(viewModel: ChecklistViewModel = viewModel()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            TextField(
+            PremiumTextField(
                 value = newTaskText,
                 onValueChange = { newTaskText = it },
-                modifier = Modifier.weight(1f),
-                placeholder = { Text("Add a new task...") },
-                shape = RoundedCornerShape(24.dp),
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    focusedContainerColor = Color.White.copy(alpha = 0.1f),
-                    unfocusedContainerColor = Color.White.copy(alpha = 0.1f)
-                )
+                label = "Add a new task...",
+                modifier = Modifier.weight(1f)
             )
             FloatingActionButton(
                 onClick = {
-                    viewModel.addItem(newTaskText)
-                    newTaskText = ""
+                    if (newTaskText.isNotBlank()) {
+                        viewModel.addItem(newTaskText)
+                        newTaskText = ""
+                    }
                 },
                 containerColor = Color(0xFF3F51B5),
                 contentColor = Color.White,
@@ -74,7 +70,11 @@ fun ChecklistScreen(viewModel: ChecklistViewModel = viewModel()) {
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             items(viewModel.items) { item ->
-                TodoItemRow(item, onToggle = { viewModel.toggleItem(item) }, onDelete = { viewModel.removeItem(item) })
+                TodoItemRow(
+                    item = item, 
+                    onToggle = { viewModel.toggleItem(item) }, 
+                    onDelete = { viewModel.removeItem(item) }
+                )
             }
         }
     }

@@ -22,9 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CurrencyScreen(viewModel: CurrencyViewModel = viewModel()) {
+fun CurrencyScreen(viewModel: CurrencyViewModel) {
     var amountText by remember { mutableStateOf("1") }
     var fromCurrency by remember { mutableStateOf("USD") }
     var toCurrency by remember { mutableStateOf("EUR") }
@@ -34,22 +33,9 @@ fun CurrencyScreen(viewModel: CurrencyViewModel = viewModel()) {
     val result = viewModel.convert(amount, fromCurrency, toCurrency)
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)
-            .padding(16.dp),
+        modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            "Currency Converter",
-            color = Color.White,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(vertical = 16.dp)
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
         // Large Input Area
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -118,24 +104,9 @@ fun CurrencyScreen(viewModel: CurrencyViewModel = viewModel()) {
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
         if (viewModel.isLoading) {
-            CircularProgressIndicator(color = Color(0xFF3F51B5))
+            CircularProgressIndicator(color = Color(0xFF3F51B5), modifier = Modifier.padding(top = 16.dp))
         }
-
-        if (viewModel.error != null) {
-            Text(viewModel.error!!, color = Color.Red)
-        }
-
-        Spacer(modifier = Modifier.weight(1f))
-        
-        Text(
-            text = "Exchange rates are updated live",
-            color = Color.Gray,
-            fontSize = 12.sp,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
     }
 
     if (showDialog != null) {

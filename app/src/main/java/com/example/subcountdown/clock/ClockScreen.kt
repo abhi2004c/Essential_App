@@ -22,8 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import coil.compose.AsyncImage
-import coil.compose.SubcomposeAsyncImage
+import com.example.subcountdown.core.ui.GlassCard
+import com.example.subcountdown.core.ui.PremiumTextField
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -121,7 +121,6 @@ fun WorldClockItem(clock: WorldClock, onDelete: () -> Unit) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TimeZoneSearchDialog(
     availableTimeZones: List<String>,
@@ -156,29 +155,19 @@ fun TimeZoneSearchDialog(
                     Text(
                         "Choose City/Country",
                         color = Color.White,
-                        fontSize = 20.sp,
+                        fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(start = 8.dp)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                TextField(
+                PremiumTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    placeholder = { Text("Search city or country...", color = Color.Gray) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(24.dp),
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.White.copy(alpha = 0.1f),
-                        unfocusedContainerColor = Color.White.copy(alpha = 0.1f),
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White
-                    )
+                    label = "Search city or country...",
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) }
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))

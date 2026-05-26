@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.subcountdown.core.models.ForecastItem
 import com.example.subcountdown.core.models.WeatherResponse
+import com.example.subcountdown.core.ui.GlassCard
+import com.example.subcountdown.core.ui.PremiumTextField
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.cos
@@ -53,12 +55,10 @@ fun WeatherDetailScreen(viewModel: WeatherViewModel) {
     ) {
         Spacer(modifier = Modifier.height(16.dp))
         
-        TextField(
+        PremiumTextField(
             value = citySearch,
             onValueChange = { citySearch = it },
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-            placeholder = { Text("Search city", color = Color.Gray) },
-            shape = RoundedCornerShape(28.dp),
+            label = "Search city",
             trailingIcon = {
                 IconButton(onClick = {
                     viewModel.fetchWeather(citySearch)
@@ -71,15 +71,7 @@ fun WeatherDetailScreen(viewModel: WeatherViewModel) {
             keyboardActions = KeyboardActions(onSearch = {
                 viewModel.fetchWeather(citySearch)
                 focusManager.clearFocus()
-            }),
-            colors = TextFieldDefaults.colors(
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                focusedContainerColor = Color.White.copy(alpha = 0.05f),
-                unfocusedContainerColor = Color.White.copy(alpha = 0.05f),
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            )
+            })
         )
 
         Spacer(modifier = Modifier.height(40.dp))
